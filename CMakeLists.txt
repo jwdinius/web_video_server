@@ -7,6 +7,7 @@ find_package(async_web_server_cpp REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 find_package(OpenCV REQUIRED)
@@ -43,7 +44,7 @@ include_directories(include
 )
 
 ## Declare a cpp executable
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME}_lib SHARED
   src/web_video_server.cpp
   src/image_streamer.cpp
   src/libav_streamer.cpp
@@ -57,12 +58,8 @@ add_executable(${PROJECT_NAME}
   src/utils.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME}
-  sensor_msgs
-)
-
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}_lib
   async_web_server_cpp::async_web_server_cpp
   cv_bridge::cv_bridge
   image_transport::image_transport
@@ -76,12 +73,43 @@ target_link_libraries(${PROJECT_NAME}
   ${swscale_LIBRARIES}
 )
 
+## Declare a cpp executable
+add_executable(${PROJECT_NAME}
+  src/web_video_server_node.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}
+  ${PROJECT_NAME}_lib
+)
+
+ament_target_dependencies(${PROJECT_NAME}_lib
+  rclcpp_components
+  sensor_msgs
+)
+
+rclcpp_components_register_nodes(${PROJECT_NAME}_lib "web_video_server::WebVideoServer")
+
 #############
 ## Install ##
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}
+install(
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+install(
+  TARGETS ${PROJECT_NAME}_lib
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+
+install(
+  TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
 
