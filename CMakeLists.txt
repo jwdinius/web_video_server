@@ -43,8 +43,8 @@ include_directories(include
   ${swscale_INCLUDE_DIRS}
 )
 
-## Declare a cpp executable
-add_library(${PROJECT_NAME}_lib SHARED
+## Declare a cpp library
+add_library(${PROJECT_NAME} SHARED
   src/web_video_server.cpp
   src/image_streamer.cpp
   src/libav_streamer.cpp
@@ -59,7 +59,7 @@ add_library(${PROJECT_NAME}_lib SHARED
 )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_lib
+target_link_libraries(${PROJECT_NAME}
   async_web_server_cpp::async_web_server_cpp
   cv_bridge::cv_bridge
   image_transport::image_transport
@@ -74,20 +74,20 @@ target_link_libraries(${PROJECT_NAME}_lib
 )
 
 ## Declare a cpp executable
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME}_node
   src/web_video_server_node.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
-  ${PROJECT_NAME}_lib
+target_link_libraries(${PROJECT_NAME}_node
+  ${PROJECT_NAME}
 )
 
-ament_target_dependencies(${PROJECT_NAME}_lib
+ament_target_dependencies(${PROJECT_NAME}
   rclcpp_components
   sensor_msgs
 )
 
-rclcpp_components_register_nodes(${PROJECT_NAME}_lib "web_video_server::WebVideoServer")
+rclcpp_components_register_nodes(${PROJECT_NAME} "web_video_server::WebVideoServer")
 
 #############
 ## Install ##
@@ -100,7 +100,7 @@ install(
 )
 
 install(
-  TARGETS ${PROJECT_NAME}_lib
+  TARGETS ${PROJECT_NAME}
   EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -108,8 +108,9 @@ install(
 )
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
+set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 install(
-  TARGETS ${PROJECT_NAME}
+  TARGETS ${PROJECT_NAME}_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

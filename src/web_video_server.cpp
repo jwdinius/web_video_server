@@ -61,7 +61,6 @@ WebVideoServer::WebVideoServer(const rclcpp::NodeOptions & options)
   declare_parameter("verbose", true);
   declare_parameter("address", "0.0.0.0");
   declare_parameter("server_threads", 1);
-  declare_parameter("ros_threads", 2);
   declare_parameter("publish_rate", -1.0);
   declare_parameter("default_stream_type", "mjpeg");
 
@@ -70,7 +69,6 @@ WebVideoServer::WebVideoServer(const rclcpp::NodeOptions & options)
   get_parameter("address", address_);
   int server_threads;
   get_parameter("server_threads", server_threads);
-  get_parameter("ros_threads", ros_threads_);
   get_parameter("publish_rate", publish_rate_);
   get_parameter("default_stream_type", default_stream_type_);
 
@@ -108,22 +106,21 @@ WebVideoServer::WebVideoServer(const rclcpp::NodeOptions & options)
       address_.c_str(), port_);
     throw;
   }
+
   RCLCPP_INFO(get_logger(), "Waiting For connections on %s:%d", address_.c_str(), port_);
+
   if (publish_rate_ > 0) {
     create_wall_timer(1s / publish_rate_, [this]() {restreamFrames(1.0 / publish_rate_);});
   }
+
+  cleanup_timer_ = create_wall_timer(500ms, [this]() {cleanup_inactive_streams();});
+
   server_->run();
 }
 
 WebVideoServer::~WebVideoServer()
 {
   server_->stop();
-}
-
-void WebVideoServer::setup_cleanup_inactive_streams()
-{
-  std::function<void()> callback = std::bind(&WebVideoServer::cleanup_inactive_streams, this);
-  cleanup_timer_ = create_wall_timer(500ms, callback);
 }
 
 void WebVideoServer::restreamFrames(double max_age)

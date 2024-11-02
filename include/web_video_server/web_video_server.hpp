@@ -68,8 +68,6 @@ public:
    */
   virtual ~WebVideoServer();
 
-  void setup_cleanup_inactive_streams();
-
   bool handle_request(
     const async_web_server_cpp::HttpRequest & request,
     async_web_server_cpp::HttpConnectionPtr connection,
@@ -99,7 +97,7 @@ private:
   void restreamFrames(double max_age);
   void cleanup_inactive_streams();
 
-  rclcpp::WallTimer<rclcpp::VoidCallbackType>::SharedPtr cleanup_timer_;
+  rclcpp::TimerBase::SharedPtr cleanup_timer_;
 
   // Parameters
   int ros_threads_;

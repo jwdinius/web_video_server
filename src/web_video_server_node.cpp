@@ -35,8 +35,8 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<web_video_server::WebVideoServer>(rclcpp::NodeOptions());
-  node->setup_cleanup_inactive_streams();
 
+  node->declare_parameter("ros_threads", 2);
   int ros_threads;
   node->get_parameter("ros_threads", ros_threads);
   rclcpp::executors::MultiThreadedExecutor spinner(rclcpp::ExecutorOptions(), ros_threads);
